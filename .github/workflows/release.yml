@@ -1,0 +1,44 @@
+name: UI Public SDK Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'NPM package name to release'
+        required: true
+        type: choice
+        options:
+          - '@vcd/sdk'
+          - '@vcfa/container-hooks'
+      package_version:
+        description: 'Version of the NPM package to release'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Get package tarball URL
+        id: get_tarball_url
+        run: |
+          TARBALL_URL=$(npm view ${{ github.event.inputs.package_name }}@${{ github.event.inputs.package_version }} dist.tarball --registry https://packages.broadcom.com/artifactory/api/npm/vcf-services-sdk/)
+          echo "tarball_url=${TARBALL_URL}" >> $GITHUB_OUTPUT
+
+      - name: Download and extract package
+        run: |
+          curl -o package.tgz "${{ steps.get_tarball_url.outputs.tarball_url }}"
+          tar -xzvf package.tgz
+          rm package.tgz
+
+      - name: Publish to public registry
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd package
+          ls -la
+          echo "publish to npm..."
