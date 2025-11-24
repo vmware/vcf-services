@@ -42,4 +42,4 @@ jobs:
           cd package
           echo "registry=https://registry.npmjs.org" > .npmrc
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-          npm publish --tag latest
+          npm publish --tag latest --access public
