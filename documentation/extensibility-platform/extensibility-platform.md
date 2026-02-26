@@ -22,7 +22,7 @@ VMware Cloud Foundation Automation Notifications and Events are consumed using t
 
 VMware Cloud Foundation Automation provides an [API Extensibility](api-extensibility.md) feature that allows defining custom API endpoints that integrate seamlessly into VMware Cloud Foundation Automation REST API layer. Partner services can leverage this capability to enable new services that can be consumed by either UI Plugins or API users and scripts. The additional APIs require a backend to process the request information and respond in the proper fashion. 
 
-The API Extensibility Framework allows VMware Cloud Foundation Automation to act as a transparent proxy to any REST API that the VCFA appliance has network connectivity to but the API caller does not. This approach, combined with the iFrame support of UI Plugins, enables quick and low-effort integrations with other Cloud Services and Systems.
+The API Extensibility Framework allows VMware Cloud Foundation Automation to act as a transparent proxy to any REST API that the VCF Automation has network connectivity to but the API caller does not. This approach, combined with the iFrame support of UI Plugins, enables quick and low-effort integrations with other Cloud Services and Systems.
 
 ## Runtime Defined Entities and Behaviors
 
