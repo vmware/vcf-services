@@ -39,4 +39,3 @@
 			- [MQTT Behaviors](extensibility-platform/defined-entities/mqtt-behaviors.md)
 			- [Scheduled Behaviors](extensibility-platform/defined-entities/scheduled-behaviors.md)
 			- [No-Op Behaviors](extensibility-platform/defined-entities/no-op-behaviors.md)
-		
