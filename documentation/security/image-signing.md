@@ -13,7 +13,6 @@ Supervisor Services leverage [cosign](https://github.com/sigstore/cosign) with t
 The following artifacts must be signed to be considered **Trusted**:
 
 - **Service Package Bundles:** The Carvel [imgpkg](https://carvel.dev/imgpkg/) bundles.
-- **Control Plane Images:** Any container images referenced by Pods running on the Supervisor Control Plane VM.
 
 > **Note:** Container images for standard vSphere Pods (workloads) do not strictly require signatures for installation.
 
@@ -100,4 +99,13 @@ imgpkg copy -b <DEV_REGISTRY>/<PROJECT>/<NAME>@sha256:<DIGEST> \
 
 ## Trusting Custom Certificates on Supervisor
 
-By default, the vSphere Supervisor trusts images signed by Broadcom-certified authorities. If you use a **custom CA** for your service signatures, you must provide the Root CA certificate to the Supervisor so it can verify your signed bundles. Configuration of custom CA trust is expected to be available from the UI in a future release.
+By default, the vSphere Supervisor trusts images signed by Broadcom-certified authorities and by well-known public trusted CAs.
+
+If you use **custom or private PKI**, the Supervisor must trust the relevant Root CAs to verify your signed bundles. This applies in two cases:
+
+| What | When custom CA trust is needed |
+|------|---------------------------------|
+| **Signer certificate** | Your signing certificate is issued by a custom/private CA. The Supervisor needs the signer’s Root CA to verify the image signature. |
+| **TSA (Time Stamp Authority)** | You use a private or corporate timestamp server (e.g. your own RFC 3161 TSA). If the TSA’s certificate is issued by a custom CA, the Supervisor needs that Root CA to verify the timestamp on the signature. |
+
+Provide the required Root CA certificate(s) to the Supervisor so it can verify both the signature and, when present, the timestamp. Configuration of custom CA trust is expected to be available from the UI in a future release. Until then, work with your platform administrator.

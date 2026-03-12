@@ -4,11 +4,10 @@ Supervisor Services are powered by the Carvel packaging standard. To support aut
 
 ## The Final Deliverable
 
-To submit a service, you must provide a **single YAML manifest** and a **pushed OCI bundle**.
+To submit a service, you must provide a **single YAML document** and a **pushed OCI bundle**.
 
 - **OCI Bundle** – A registry-hosted OCI bundle containing all manifests and image references.
-- **PackageMetadata YAML** – The "storefront" data (name, description, icon, categories).
-- **Package YAML** – References the imgpkg bundle and defines the "installer" data (version, bundle reference, and configuration schema).
+- **Single YAML document** – One manifest containing both **PackageMetadata** (storefront data: name, description, icon, categories) and **Package** (installer data: version, bundle reference, and configuration schema).
 
 ## Step 1: Create the imgpkg Bundle
 

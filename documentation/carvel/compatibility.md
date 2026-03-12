@@ -4,15 +4,15 @@ This guide outlines the compatibility framework for Supervisor Services. By defi
 
 ## Overview of Compatibility Checks
 
-Supervisor Services support two types of compatibility enforcement:
+Supervisor Services support the following types of compatibility enforcement:
 
-  - Severity behavior
+  - **Severity behavior** – Each check can report `ERROR`, `WARNING`, or `INFO`.
 
-| Severity  | Effect |
-|-----------|--------|
-| `ERROR`   | Upgrade is considered **not compatible**; pre-check fails, installation/upgrade is blocked |
-| `WARNING` | Upgrade is allowed; warning is shown. |
-| `INFO`    | Upgrade is allowed; informational message is shown. |
+| Severity  | Effect | When to use |
+|-----------|--------|-------------|
+| `ERROR`   | Pre-check fails; installation/upgrade is blocked. | Environment does not meet a hard requirement (e.g. required capability or API not enabled); block to avoid runtime failure. |
+| `WARNING` | Upgrade is allowed; warning is shown. | Admin should be informed but can proceed (e.g. known limitation in this environment). |
+| `INFO`    | Upgrade is allowed; informational message is shown. | Optional guidance. |
 
 These checks are evaluated during **Service Installation**, **Service Upgrade**, and **Supervisor Upgrade**.
 
@@ -20,12 +20,12 @@ These checks are evaluated during **Service Installation**, **Service Upgrade**,
 
 Define these constraints in your Package YAML under `spec` or `metadata.annotations`.
 
-| Criterion | Description |
-|-----------|-------------|
-| [A. Supervisor Version Constraints](#a-supervisor-version-constraints) | Ensure the Supervisor platform version is compatible. |
-| [B. Kubernetes Version Selection](#b-kubernetes-version-selection) | Ensure the underlying Kubernetes version meets requirements. |
-| [C. Version Upgrade Constraints](#c-version-upgrade-constraints) | Restrict allowed source or destination versions during upgrade. |
-| [D. Runtime Pre-check Hooks](#d-advanced-runtime-pre-check-hooks) | Custom HTTP hook for Go/No-Go decision before upgrade. |
+| Criterion | Description | When to use |
+|-----------|-------------|-------------|
+| [A. Supervisor Version Constraints](#a-supervisor-version-constraints) | Ensure the Supervisor platform version is compatible. | Your service depends on a feature or API that exists only in certain Supervisor versions; block install/upgrade on older releases. |
+| [B. Kubernetes Version Selection](#b-kubernetes-version-selection) | Ensure the underlying Kubernetes version meets requirements. | Your manifests or controllers require a minimum Kubernetes API version or behavior (e.g. CRD or admission API). |
+| [C. Version Upgrade Constraints](#c-version-upgrade-constraints) | Restrict allowed source or destination versions during upgrade. | You need to enforce upgrade paths (e.g. no skip from v1.0 to v3.0, or limit upgrades from a given version to a range). |
+| [D. Runtime Pre-check Hooks](#d-advanced-runtime-pre-check-hooks) | Custom HTTP hook using the same severity-level reporting as platform pre-checks. | Compatibility cannot be expressed by version or capability alone (e.g. check DB reachability, storage, or custom env state before upgrade). |
 
 ### A. Supervisor Version Constraints
 
@@ -84,9 +84,7 @@ metadata:
 
 If your compatibility logic cannot be expressed as a simple version string (e.g., you need to check if a specific database is reachable or if enough storage remains), you can use an **Upgrade Pre-check Hook**.
 
-The Supervisor calls a specific HTTP endpoint in your service to get a "Go/No-Go" decision before an upgrade starts.
-
-- **Implementation:** Add the compatibility-check annotations to your Package metadata.
+The Supervisor calls a specific HTTP endpoint in your service before an upgrade starts. The endpoint must return results using the same **severity-level reporting** (ERROR, WARNING, INFO) as the general platform pre-checks. You must implement a web server that fulfills the API contract below; adding the compatibility-check annotations to your Package metadata alone is not sufficient.
 
 ```yaml
 metadata:

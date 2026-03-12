@@ -46,7 +46,7 @@ spec:
 To verify your package is "Private Registry Ready" without a full corporate setup, follow these steps:
 
 1. **Local Registry:** Run a local Docker registry with basic authentication enabled and config the Supervisor to trust this registry.
-2. **Relocate:** Use `imgpkg copy` to move your bundle to your local private registry (e.g. `imgpkg copy -b <source> --to-repo <local-registry>`). *Do not use `push`; imgpkg preserves the image lockfile required for resolution*.
+2. **Relocate:** Use `imgpkg copy` to move your bundle to your local private registry (e.g. `imgpkg copy -b <source> --to-repo <local-registry> --cosign-signatures`). *Do not use `push`; imgpkg preserves the image lockfile required for resolution. Include `--cosign-signatures` so that any signatures are copied along with the bundle.*
 3. **Install:** Install the package on a Supervisor.
 4. **Check Pods:** If your Pods reach Running status, the platform successfully populated your placeholder secret and the Kubelet used it to authenticate.
 

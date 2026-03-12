@@ -1,15 +1,17 @@
 # Introduction
 
-A Supervisor Service is the standard way to deliver your software as a managed, native platform capability. By packaging your solution as a Supervisor Service, you enable administrators to deploy and manage your application across the VMware Cloud Foundation (VCF) ecosystem using standardized APIs and management interfaces.
+VMware Cloud Foundation (VCF) supports multiple ways to lifecycle-manage packaged applications. **Supervisor Services** offer a versioned way to extend VCF by integrating your capability natively **into the Supervisor**—surfacing it in the Service Catalog, upgrade workflows, and management APIs.
+
+You do not need a Supervisor Service merely to run a workload in VCF; this guide focuses on the use case of extending the Supervisor with a first-class, lifecycle-managed service. For broader context on VCF services, see the general VCF documentation.
 
 ## Why Build a Supervisor Service?
 
 If you are building Kubernetes-native software, turning it into a Supervisor Service provides:
 
-- **Integrated Consumption:** Your service is surfaced in a centralized Service Catalog, allowing admins to enable it on one or more Supervisors with a single workflow.
-- **Lifecycle as a Service:** The platform manages deployment, health monitoring, and dependency reconciliation.
+- **Integrated Consumption:** Your service appears in the Service Catalog so admins can enable it on one or more Supervisors with a single workflow.
+- **Platform-orchestrated lifecycle:** The Supervisor orchestrates deployment, upgrades, and health; customers do not need to run `kubectl` or other client commands to keep the service running.
 - **Enterprise Isolation:** Each service instance runs in a dedicated, secure namespace with strict resource boundaries.
-- **Environment Awareness:** Your application can adapt to its environment (e.g. networking stack, control plane size, cluster Virtual IP) via SupervisorProperties injection, without environment-specific hardcoding.
+- **Environment Awareness:** Your application can adapt to its environment (e.g. networking stack, control plane size, cluster Virtual IP) via [SupervisorProperties](carvel/environment-aware.md) injection, without environment-specific hardcoding.
 
 ## The Service Lifecycle
 
