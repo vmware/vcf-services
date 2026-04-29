@@ -1,4 +1,4 @@
-# Authoring Carvel Supervisor Services
+# Authoring Supervisor Services
 
 Supervisor Services are powered by the Carvel packaging standard. To support automated reconciliation, Supervisor Services must be packaged using the [Carvel toolset](https://carvel.dev/). This guide defines the technical "contract" your service must meet to be compatible with the Supervisor platform.
 
@@ -7,7 +7,7 @@ Supervisor Services are powered by the Carvel packaging standard. To support aut
 To submit a service, you must provide a **single YAML document** and a **pushed OCI bundle**.
 
 - **OCI Bundle** – A registry-hosted OCI bundle containing all manifests and image references.
-- **Single YAML document** – One manifest containing both **PackageMetadata** (storefront data: name, description, icon, categories) and **Package** (installer data: version, bundle reference, and configuration schema).
+- **Single YAML document** – One manifest containing both **PackageMetadata** (catalog data: name, display name, description, categories) and **Package** (installer data: version, bundle reference, and configuration schema).
 
 ## Step 1: Create the imgpkg Bundle
 
@@ -34,17 +34,22 @@ The Supervisor requires an immutable deployment. You must include a `.imgpkg/ima
 
 ## Step 2: Define the Package Metadata
 
-The PackageMetadata resource defines how your service appears in the Supervisor Service catalog.
+The `PackageMetadata` resource defines how your service appears in the Supervisor Service catalog.
 
-- **name** – Must be a fully qualified domain name (e.g. `pkg.example.com.my-service`). Must match the Package’s `spec.refName`.
+- **`metadata.name`** – The **main service identifier**: a stable, unique, fully qualified name for the service (e.g. `my-service.example.com`). It must match the `spec.refName` of every `Package` that ships a version of this service, and it is what admins see referenced in the Service Catalog and APIs.
+- **`spec.displayName`** – The human-readable name shown in the Service Catalog (e.g. `"My Service"`).
+- **`spec.shortDescription`** – A one-line summary used in catalog listings.
+- **`spec.longDescription`** – A longer description shown on the service detail page.
+- **`spec.providerName`** – The organization that publishes the service (e.g. `"Example Inc."`).
+- **`spec.categories`** – Optional list of category tags used for filtering in the catalog.
 
-For the full PackageMetadata CR specification, see the [Carvel packaging docs](https://carvel.dev/kapp-controller/docs/latest/packaging/#packagemetadata-cr).
+For the full `PackageMetadata` CR specification, see the [Carvel packaging docs](https://carvel.dev/kapp-controller/docs/latest/packaging/#packagemetadata-cr).
 
 ---
 
 ## Step 3: Define the Package (The Installer)
 
-The Package resource tells the Supervisor how to actually run your code.
+The `Package` resource tells the Supervisor how to actually deploy your code.
 
 ### The Fetch & Template Contract
 
@@ -80,3 +85,4 @@ For the full Package CR specification, see the [Carvel packaging docs](https://c
 - [Carvel](https://carvel.dev/) – ytt, kbld, imgpkg, kapp
 - [Carvel packaging (Package & PackageMetadata)](https://carvel.dev/kapp-controller/docs/latest/packaging/)
 - [imgpkg Basic Workflow](https://carvel.dev/imgpkg/docs/v0.46.x/basic-workflow/)
+
