@@ -54,7 +54,7 @@ VCF Services and Supervisor Services serve related but distinct purposes.
 | **Platform integration** | Full (RBAC, UI, API, OAuth, RDE, multi-tenancy) | Kubernetes workloads on the Supervisor cluster only |
 | **Lifecycle management** | Install, upgrade, rollback, delete managed by Service Manager | Managed by vSphere or external tooling |
 
-**If your goal is to deploy a workload on a single Supervisor cluster** and you do not need multi-Supervisor cluster orchestration or VCF Automation platform integration, start with the [Supervisor Services Development Guide](../supervisor-services/overview.md) (vSphere Supervisor Services documentation).
+**If your goal is to deploy a workload on a single Supervisor cluster** and you do not need multi-Supervisor cluster orchestration or VCF Automation platform integration, start with the [Supervisor Services Development Guide](supervisor-services/introduction.md) (vSphere Supervisor Services documentation).
 
 **If your Supervisor Service needs to participate in VCF Automation** - to be discoverable and lifecycle-managed across a fleet, to integrate with VCF Automation RBAC, UI, or API, or to be offered to tenants - follow this guide. The `SupervisorService` CR is one of the element types a VCF Service can declare; packaging it inside a VCF Service is what brings it under VCF Automation management.
 
