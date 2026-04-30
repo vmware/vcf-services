@@ -1,0 +1,21 @@
+#! Multi-region test: multiple regions with different supervisors
+regions:
+  - name: us-west-1
+    hostSupervisor:
+      name: supervisor-01
+      configuration:
+        enabled: true
+        port: 8080
+    clientSupervisors:
+      - supervisor-01
+      - supervisor-02
+  - name: eu-central-1
+    hostSupervisor:
+      name: supervisor-03
+      configuration:
+        enabled: true
+        port: 9090
+    clientSupervisors:
+      - supervisor-03
+__system:
+  uiplugin1: registry.local/myservice-ui:test

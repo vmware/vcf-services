@@ -1,0 +1,12 @@
+#! Basic test: single region with a host supervisor
+regions:
+  - name: us-west-1
+    hostSupervisor:
+      name: supervisor-01
+      configuration:
+        enabled: true
+        port: 8080
+    clientSupervisors:
+      - supervisor-01
+__system:
+  uiplugin1: registry.local/myservice-ui:test

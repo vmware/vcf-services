@@ -1,0 +1,35 @@
+#@ load("@ytt:data", "data")
+
+#@ def get_inventory_regions():
+#@   """Get regions from inventory that have supervisors"""
+#@   if hasattr(data.values, "regions") and len(data.values.regions) > 0:
+#@     return [r for r in data.values.regions if "supervisors" in r]
+#@   end
+#@   return []
+#@ end
+
+#@ def transform_region(inventory_region):
+#@   """Transform an inventory region to service values format"""
+#@   return {
+#@     "name": inventory_region["name"],
+#@     "hostSupervisor": {
+#@       "name": inventory_region["supervisors"][0]["name"],
+#@       "configuration": {
+#@         "enabled": True,
+#@       }
+#@     },
+#@     "clientSupervisors": [s["name"] for s in inventory_region["supervisors"]]
+#@   }
+#@ end
+
+#@ def merge_regions():
+#@   """Generate regions based on inventory"""
+#@   inventory_regions = get_inventory_regions()
+#@   if len(inventory_regions) == 0:
+#@     return []
+#@   end
+#@   return [transform_region(r) for r in inventory_regions]
+#@ end
+
+---
+regions: #@ merge_regions()

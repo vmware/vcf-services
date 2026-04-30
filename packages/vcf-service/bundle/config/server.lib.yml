@@ -1,0 +1,19 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+#@ load("lib.star", "selector", "resource_name")
+
+#! =============================================================================
+#! Singleton Resources (Created once per service)
+#! =============================================================================
+
+#@ def singleton():
+#@   return []
+#@ end
+
+#! =============================================================================
+#! Server Resources (Per Region/Supervisor)
+#! =============================================================================
+
+#@ def server(region):
+#@   return []
+#@ end

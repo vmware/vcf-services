@@ -1,0 +1,19 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:template", "template")
+
+#@ load("lib.star", "documents")
+#@ load("server.lib.yml", "server", "singleton")
+
+#@ template.replace(documents(data, server, None, singleton))
+---
+apiVersion: services.vcfa.broadcom.com/v2
+kind: UserInterfacePlugin
+metadata:
+  labels:
+    services.vcfa.broadcom.com/name: myservice-plugin
+spec:
+  enabled: true
+  image: #@ data.values.__system.uiplugin1
+  allowMultipleVersions: true
+  scope:
+    allTenants: true

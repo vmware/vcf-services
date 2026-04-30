@@ -1,0 +1,77 @@
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: PackageMetadata
+metadata:
+  name: myservice.broadcom.com
+  labels:
+    services.vcfa.broadcom.com/can-auto-scale-regions: "false"
+    services.vcfa.broadcom.com/can-auto-scale-supervisors: "true"
+spec:
+  displayName: "My Service"
+  iconSVGBase64: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNU0yIDEybDEwIDUgMTAtNSIvPjwvc3ZnPg==
+  longDescription: "My Service provides functionality for managing resources within the VCF Automation platform. It integrates with supervisors and regions to deliver seamless resource management."
+  shortDescription: "Resource management service for VCF Automation"
+  providerName: Broadcom
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: myservice.broadcom.com
+spec:
+  refName: myservice.broadcom.com
+  version: # Set by build process
+  template:
+    spec:
+      fetch:
+        - imgpkgBundle:
+            image: # Set by build process
+      template:
+        - ytt:
+            paths: ["config/"]
+      deploy:
+        - kapp: {}
+  valuesSchema:
+    openAPIv3:
+      title: myservice values schema
+      properties:
+        system:
+          type: object
+          description: VCF Service Autowired Properties.
+          properties:
+            vcfDepotFqdn:
+              type: string
+              description: VCF Depot FQDN
+              default: vcf-depot.kube-system.svc
+        regions:
+          description: Collection of regional configurations.
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Region name
+              hostSupervisor:
+                type: object
+                description: Host supervisor configuration
+                properties:
+                  name:
+                    type: string
+                    description: Supervisor name
+                  configuration:
+                    type: object
+                    description: Supervisor-specific configuration
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: true
+                      port:
+                        type: integer
+                        default: 8080
+              clientSupervisors:
+                type: array
+                description: List of client supervisor names
+                items:
+                  type: string
+      required:
+        - regions
