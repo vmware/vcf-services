@@ -10,7 +10,7 @@
     "build": "ng build",
     "build:plugin": "ng build --configuration plugin && npm run zip",
     "test": "ng test",
-    "zip": "node ./scripts/zip.js ./dist/ui-plugin ./dist/plugin.zip"
+    "zip": "node ./scripts/zip.js ./dist/quick-start ./dist/plugin.zip"
   },
   "private": true,
   "dependencies": {
