@@ -65,6 +65,8 @@ metadata:
   labels:
     services.vcfa.broadcom.com/can-auto-scale-regions: "false"
     services.vcfa.broadcom.com/can-auto-scale-supervisors: "true"
+  annotations:
+    vcf.broadcom.com/uninstall-protected: "true"   # optional - see Uninstall protection annotation below
 spec:
   displayName: "Arcturus"
   shortDescription: "OCI Registry"
@@ -107,6 +109,26 @@ spec:
                 type: object
                 description: Host Supervisor configuration for this region.
 ```
+
+### Uninstall protection annotation
+
+Broadcom-provided services can opt into uninstall protection by setting the following annotation on the `PackageMetadata` resource in `package.yml`:
+
+```yaml
+metadata:
+  annotations:
+    vcf.broadcom.com/uninstall-protected: "true"
+```
+
+**Effect:** When this annotation is present and the service vendor is `broadcom`, the Service Manager API blocks any attempt to set `lifecycleState: inactive` (i.e. uninstall the service) and returns `403 Forbidden`. The protection can be overridden by a provider administrator using the `?forceUninstall=true` query parameter on the PATCH endpoint. The bypass is logged for audit purposes.
+
+**Scope:** The protection applies only to Broadcom services (`vendor: broadcom`). Third-party services are not affected regardless of the annotation value.
+
+**When to use it:** Apply this annotation to services that are required for platform operation and must not be accidentally uninstalled — for example, core infrastructure components shipped as built-in services with a VCF Automation release.
+
+The `annotations` field is surfaced in the `metadata.annotations` map returned by `GET /v2/vcf-services/{id}?metadata=true`, making it available to UI and tooling for rendering or hiding the uninstall action.
+
+---
 
 ### `.values/transpiler.yml` Example
 

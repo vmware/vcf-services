@@ -234,6 +234,7 @@ Partially updates a service. Only fields provided in the request body are modifi
 | Parameter | Type | Required | Default | Description |
 | :---- | :---- | :---- | :---- | :---- |
 | `signatures` | boolean | No | false | Include full signature details in the response |
+| `forceUninstall` | boolean | No | false | Bypass uninstall protection for Broadcom services annotated with `vcf.broadcom.com/uninstall-protected: "true"`. Has no effect on third-party services. See [Uninstall protection](#uninstall-protection). |
 
 #### Request body - `PatchServiceRequest`
 
@@ -319,6 +320,31 @@ All fields are optional. Omitted fields are not changed.
 ```
 
 See [Upgrade](upgrade.md) for the full upgrade workflow.
+
+#### Uninstall protection
+
+Broadcom-provided services (vendor: `broadcom`) may carry the annotation `vcf.broadcom.com/uninstall-protected: "true"` in their `PackageMetadata`. This marks the service as protected against accidental uninstallation. Attempting to set `lifecycleState: inactive` on a protected service returns `403 Forbidden`:
+
+```json
+{
+  "error": "service is protected from uninstallation. Use forceUninstall=true query parameter to override"
+}
+```
+
+To override the protection, add `?forceUninstall=true` to the request:
+
+```http
+PATCH /v2/vcf-services/{id}?forceUninstall=true
+Content-Type: application/json
+
+{
+  "lifecycleState": "inactive"
+}
+```
+
+The bypass is logged for audit purposes. Protection only applies to Broadcom services; third-party services can always be uninstalled regardless of the `forceUninstall` value.
+
+> **Note:** The uninstall protection annotation is set by the service author in the `PackageMetadata` of the service bundle. See [Packaging - Uninstall protection](#uninstall-protection-annotation) for how to add this annotation to a bundle.
 
 ---
 
@@ -792,6 +818,29 @@ curl -s -X POST "${API}/vcf-services/${SERVICE_ID}/render-effective-values" \
   -d "{\"inventory\": ${INVENTORY}, \"userOverwrite\": \"${NEW_CONFIG}\"}"
 ```
 
+### Uninstall a protected service
+
+Broadcom services annotated with `vcf.broadcom.com/uninstall-protected: "true"` cannot be uninstalled without explicit confirmation. The standard uninstall attempt returns `403 Forbidden`; use `?forceUninstall=true` to bypass the protection.
+
+```shell
+# Attempt without the flag - returns 403 for protected services
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+  -X PATCH "${API}/vcf-services/${SERVICE_ID}" \
+  -H "Accept: ${ACCEPT}" -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"lifecycleState": "inactive"}')
+
+if [ "${RESPONSE}" = "403" ]; then
+  echo "Service is protected. Re-run with forceUninstall=true to proceed."
+
+  # Force uninstall - bypasses protection
+  curl -s -X PATCH "${API}/vcf-services/${SERVICE_ID}?forceUninstall=true" \
+    -H "Accept: ${ACCEPT}" -H "Authorization: Bearer ${TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d '{"lifecycleState": "inactive"}'
+fi
+```
+
 ---
 
 ## Error Reference
@@ -801,6 +850,7 @@ curl -s -X POST "${API}/vcf-services/${SERVICE_ID}/render-effective-values" \
 | Code | Meaning | Common causes |
 | :---- | :---- | :---- |
 | `400 Bad Request` | Invalid request | Missing required fields, EULA not accepted, invalid lifecycle transition |
+| `403 Forbidden` | Operation not permitted | Attempt to uninstall a service protected by `vcf.broadcom.com/uninstall-protected: "true"`. Use `?forceUninstall=true` to override. |
 | `404 Not Found` | Service not found | Incorrect or expired service ID |
 | `500 Internal Server Error` | Server error | Internal processing failure; retry with exponential backoff |
 
