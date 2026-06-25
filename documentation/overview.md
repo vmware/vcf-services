@@ -122,6 +122,8 @@ The lifecycle section describes how to create, distribute, and operate a VCF Ser
 
 ### I have an existing Supervisor Service and want to bring it into VCF Automation
 
+If you have not yet built your Supervisor Service, start with the [Supervisor Services Development Guide](supervisor-services/overview.md) first, then return here.
+
 1. Your Supervisor Service bundle becomes the value of the `spec.package` field (or a selector pointing to a ConfigMap) inside a [`SupervisorService`](element-types/supervisor-service.md) CR.
 2. That CR lives inside a VCF Service bundle alongside any other CRs your service needs (RBAC, UI plugin, API extension, etc.).
 3. Follow the [Packaging and Distribution](lifecycle/packaging-and-build.md) guide to wrap everything into a VCF Service tarball.
