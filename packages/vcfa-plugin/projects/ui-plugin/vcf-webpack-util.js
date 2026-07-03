@@ -22,7 +22,7 @@ function prepare() {
     "@angular",
     "@clr",
     "rxjs",
-    "@vcfa"
+    "@vcfa/container-hooks"
   ];
 
   const libsToShare = Object.keys(allRecords).map((npmPackageName) => {
