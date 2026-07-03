@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Content</title>
+    <style>
+        body { font-family: sans-serif; padding: 1rem; }
+        #token-container {
+            word-wrap: break-word;
+            border: 1px solid #eee;
+            padding: 1rem;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Iframe Content Page</h1>
+    <p>This page is designed to receive a JWT from a parent window via <code>postMessage</code>.</p>
+    <h2>Received JWT:</h2>
+    <pre id="token-container">Waiting for token...</pre>
+
+    <script>
+        // Listen for messages from the parent window
+        window.addEventListener('message', (event) => {
+            // A security best practice is to check event.origin to ensure messages are from a trusted source.
+            // For this example, we'll accept messages from any origin.
+            console.log('Message received in iframe:', event.data);
+            const tokenContainer = document.getElementById('token-container');
+            if (tokenContainer) {
+                tokenContainer.textContent = event.data ? JSON.stringify(event.data, null, 2) : 'Token is null or empty';
+            }
+        });
+
+        // Notify the parent window that the iframe is ready to receive messages.
+        window.addEventListener('load', () => {
+            console.log('Iframe is loaded and ready. Notifying parent.');
+            window.parent.postMessage({ status: 'ready' }, '*');
+        });
+    </script>
+</body>
+</html>

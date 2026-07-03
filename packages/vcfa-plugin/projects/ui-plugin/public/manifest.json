@@ -2,7 +2,7 @@
     "urn": "vcfa:plugin:quick-start",
     "name": "Quick Start Plugin",
     "containerVersion": "9.1.0",
-    "manifestVersion": "6.0.0",
+    "manifestVersion": "7.0.0",
     "version": "0.0.0",
     "scope": [
         "service-provider",
