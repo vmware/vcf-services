@@ -21,10 +21,10 @@ Object metadata gives cloud operators and tenants a flexible way to associate us
 
 ## Basic structure
 
-There currently are four entry kinds with different value types: `String`, `Number`, `Boolean` and `File`.
+There currently are five entry kinds with different value types: `String`, `Number`, `Boolean`, `Json` and `File`.
 Here is an example of the core structure. For more details, please refer to the openapi specification. Example:
 
-* Synchronous - `String`, `Number`, `Boolean`
+* Synchronous - `String`, `Number`, `Boolean`, `Json`
 
   ```http request
     POST /1.0.0/entities/{id}/metadata
@@ -44,6 +44,8 @@ Here is an example of the core structure. For more details, please refer to the 
       }
     }
   ```
+
+  For `JsonEntry`, the `value` field is an arbitrary JSON object.
 
   Response:\
   `200 Created`
@@ -101,6 +103,19 @@ DELETE /1.0.0/entities/{id}/metadata/{entry-urn}
 ```
 
 There can be up to `50` entries per entity across namespaces and domains.
+
+## Json metadata
+
+`JsonEntry` allows attaching an arbitrary JSON object to an entity. The value is stored and returned verbatim. VCFA validates JSON well-formedness on write but does not interpret the contents.
+
+`JsonEntry` is available starting with API version `9.1.2`.
+
+Constraints:
+
+* The `value` must be a JSON **object** (not a scalar or array).
+* The serialized value size is capped at **64 KiB** per entry by default (cell-config tunable).
+* `JsonEntry` values are **not searchable** and **not sortable**. They cannot be used in a `FIQL` metadata filter expression. Retrieve by key instead.
+* `JsonEntry` metadata is visible to any caller who can read the parent object. Do **not** store secrets in a `JsonEntry`.
 
 ## File metadata
 
