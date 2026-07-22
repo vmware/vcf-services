@@ -1072,8 +1072,7 @@ export class MyPluginComponent {
 Following Clarity documentation
 
 ```ts
-import '@cds/core/icon/register.js';
-import { ClarityIcons, userIcon } from '@cds/core/icon';
+import { ClarityIcons, userIcon } from '@clr/angular';
 
 ClarityIcons.addIcons(userIcon);
 ```
@@ -1103,7 +1102,7 @@ You can also use Angular's HttpClient but you need to obtain the jwt token from 
 Anywhere in your UI Plugin code
 
 ```javascript
-import { ClarityIcons} from '@cds/core/icon';
+import { ClarityIcons} from '@clr/angular';
 
 ClarityIcons.addIcons(['my-custom-icon', '<svg ... >[your SVG code goes here]</svg>']);
 ```
@@ -1196,9 +1195,19 @@ This defines a formal extension point. An extension point is a declarative way f
 
 The below table shows all supported Angular versions per VCFA release.
 
-|  | Angular 19 |
-| :---- | :---- |
-| VCFA 9.1 | ✅ 19.2.0 \- 19.2.18 |
+| VCFA Version | Angular 21 | Angular 19 |
+| :--- | :--- | :--- |
+| **VCFA 9.1.1** | ✅ 21.x.x - 21.2.17 | ❌ |
+| **VCFA 9.1** | ❌ | ✅ 19.2.0 - 19.2.18 |
+
+
+### Manifest Version
+In your manifest.json file you must put manifestVersion the below table summarizes the supported manifest versions per VCFA release.
+
+| VCFA Release | Angular 21 | Angular 19 |
+| :--- | :--- | :--- |
+| **VCFA 9.1** | ❌ | ✅ 6.0.0 |
+| **VCFA 9.1.1** | ✅ 7.0.0 | ❌ |
 
 The supported range can be seen in the peerDependencies of @vcfa/sdk NPM package.
 
