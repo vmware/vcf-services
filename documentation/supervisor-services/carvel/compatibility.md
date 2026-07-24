@@ -151,7 +151,7 @@ metadata:
 
 ## Advanced: Runtime Pre-check Hook
 
-If your compatibility logic cannot be expressed as a simple version constraint (e.g., you need to verify that a backing database is reachable, that enough storage remains, or that a custom resource is in a particular state), you can register an **Upgrade Pre-check Hook**. Before an upgrade starts, the Supervisor will call an HTTP(S) endpoint that you expose, and your endpoint returns a list of results using the same severity model (ERROR, WARNING, INFO) as the built-in platform pre-checks.
+If your compatibility logic cannot be expressed as a simple version constraint (e.g., you need to verify that a backing database is reachable, that enough storage remains, or that a custom resource is in a particular state), you can register an **Upgrade Pre-check Hook**. Before an upgrade starts, the Supervisor will call an HTTPS endpoint that you expose, and your endpoint returns a list of results using the same severity model (ERROR, WARNING, INFO) as the built-in platform pre-checks.
 
 You must implement an in-cluster web server that fulfills the API contract below. Adding the annotations to your Package alone is not sufficient — without an endpoint to call, the upgrade pre-check will fail.
 
@@ -161,7 +161,7 @@ When a user requests an upgrade from `sourceVersion` to `targetVersion` of your 
 
 1. **Reads the routing annotations** from the **source version's** Package to discover where to send the request (service, port, protocol, URL path, method, CA secret).
 2. **Reads the `_data` annotation** from the **target version's** Package and uses its value as the request body.
-3. **Issues the HTTP(S) request** to your endpoint, using the routing details from step 1 and the body from step 2.
+3. **Issues the HTTPS request** to your endpoint, using the routing details from step 1 and the body from step 2.
 4. **Parses the JSON response** and merges the results into the overall pre-check report.
 
 The endpoint must be backed by a Kubernetes Service in the same namespace as your Supervisor Service so that the Supervisor can reach it.
@@ -174,18 +174,45 @@ All annotations live on the Carvel Package metadata.
 |------------|-----------|----------|---------|-------|
 | `appplatform.vmware.com/compatibility-check_service` | source version | Yes | — | Name of the Kubernetes Service to call |
 | `appplatform.vmware.com/compatibility-check_url` | source version | Yes | — | Path appended after `host:port/`. Do not include a leading `/`. |
-| `appplatform.vmware.com/compatibility-check_port` | source version | No | `80` | TCP port on the Service |
-| `appplatform.vmware.com/compatibility-check_protocol` | source version | No | `http` | `http` or `https` (case-insensitive) |
+| `appplatform.vmware.com/compatibility-check_port` | source version | No | `443` | TCP port on the Service |
+| `appplatform.vmware.com/compatibility-check_protocol` | source version | No | `https` | Must be `https` (case-insensitive); `http` is not supported |
 | `appplatform.vmware.com/compatibility-check_method` | source version | No | `GET` | Only `GET` or `POST` are accepted |
-| `appplatform.vmware.com/compatibility-check_ca_secret` | source version | If `protocol: https` | — | Name of a Secret in your service's namespace; the Supervisor reads its `ca.crt` field to build the trust pool |
+| `appplatform.vmware.com/compatibility-check_ca_secret` | source version | Yes | — | Name of a Secret in your service's namespace; the Supervisor reads its `ca.crt` field to build the trust pool |
 | `appplatform.vmware.com/compatibility-check_data` | target version | No | empty | Sent verbatim as the request body (with `Content-Type: application/json`) for both GET and POST |
 
 > **Tip:** Because `_data` is sourced from the target version's Package, you can ship new payload fields alongside a new release without changing previously installed versions.
 
-### Transport choices
+### Transport
 
-- **`http`** — plaintext. Suitable for a Service that lives in the same cluster and is not exposed beyond it.
-- **`https`** — TLS-protected. You must ship a Secret containing a `ca.crt` field that the Supervisor will use as the root of trust, and reference it via `_ca_secret`. The Supervisor only validates the server certificate against this CA bundle; it does not present a client certificate.
+HTTPS is strictly required (HTTP is not supported). You must ship a Kubernetes Secret containing a `ca.crt` field. The Supervisor uses this CA bundle as the root of trust to validate your endpoint's server certificate. You must specify the name of this Secret in your Package using the `appplatform.vmware.com/compatibility-check_ca_secret` annotation.
+
+### Client authentication
+
+The Supervisor authenticates itself to your endpoint two ways, sent together on every call:
+
+- **Bearer token** — an `Authorization: Bearer <token>` header carrying a Supervisor
+  ServiceAccount token.
+- **Client certificate (mTLS)** — the operator also presents a client certificate on
+  every call. Don't gate your handler on a release version; check the Supervisor
+  capability instead:
+
+  ```yaml
+  capabilities:
+    - name: supports_service_compat_check_mtls
+      value: true
+  ```
+
+  When this capability is enabled, the CA that issued the client certificate is
+  published on the `SupervisorProperties` CR as `compatibilityCheckClientCA`
+  (base64-encoded PEM) and kept up to date if the certificate is ever rotated. The
+  Bearer token is still sent on every request regardless of capability state — mTLS is
+  additive, not a replacement, so an endpoint that doesn't validate client certificates
+  keeps working unchanged.
+
+  To validate the operator's identity, declare `compatibilityCheckClientCA` in your
+  Package's `valuesSchema`, the same way you'd declare any other environment property;
+  the value is delivered through the standard env-props mechanism. Then configure your
+  server to require and validate a client certificate against that CA.
 
 ### Example
 
@@ -281,9 +308,11 @@ If the hook is misconfigured or your endpoint misbehaves, the platform treats th
 | Symptom | Likely cause | What to check |
 |---------|--------------|---------------|
 | Pre-check times out or reports "endpoint unreachable" / DNS failure | Wrong `_service` name, wrong `_port`, the backing Pod is not Ready, or the Service is in the wrong namespace. | The Supervisor resolves the endpoint as `<_service>.<your-service-namespace>.svc.cluster.local:<_port>`. Confirm: (1) a Kubernetes Service with that name exists in the same namespace as your Supervisor Service, (2) `_port` matches one of its `ports[].port`, and (3) at least one selected Pod is Ready. |
-| TLS / certificate error when `_protocol: https` | Missing `_ca_secret`, the Secret doesn't exist in your service's namespace, or it has no `ca.crt` field. | The Supervisor reads the `ca.crt` key (not `ca.cert`) of the referenced Secret and uses it as the only root of trust. Verify the Secret exists in your Supervisor Service's namespace, contains a PEM-encoded `ca.crt` entry, and that this CA actually issued the server certificate your endpoint presents (including matching SANs for `<_service>.<namespace>.svc.cluster.local`). |
+| TLS / certificate error | Missing `_ca_secret`, the Secret doesn't exist in your service's namespace, or it has no `ca.crt` field. | The Supervisor reads the `ca.crt` key (not `ca.cert`) of the referenced Secret and uses it as the only root of trust. Verify the Secret exists in your Supervisor Service's namespace, contains a PEM-encoded `ca.crt` entry, and that this CA actually issued the server certificate your endpoint presents (including matching SANs for `<_service>.<namespace>.svc.cluster.local`). |
 | "method ... not supported" error at registration / call time | `_method` was set to something other than GET or POST. | Only GET and POST are accepted (case-insensitive). Omit the annotation to default to GET. |
-| "CA cert must be provided if using HTTPS" | `_protocol: https` was set but `_ca_secret` was omitted. | Either add `_ca_secret`, or drop the `_protocol` annotation to fall back to plain http. |
+| "protocol ... is not allowed; only https is supported" | `_protocol` was explicitly set to `http`. | Set `_protocol: https` (or omit the annotation to use the default) and provide `_ca_secret`. HTTP is not supported. |
+| "CA cert must be provided if using HTTPS" | `_ca_secret` was omitted. | `_ca_secret` is strictly required; please ensure you have added it to your package annotations. |
+| Endpoint expects a client certificate but none is presented | The `supports_service_compat_check_mtls` capability is not enabled on this Supervisor. | Check the capability rather than gating on a release version. The Bearer token is still sent regardless, so treat client-cert validation as additive, not a hard requirement. |
 | "Invalid response body" / JSON parse error | The endpoint returned non-JSON (e.g. an HTML error page) or the JSON did not match the contract. | Return a JSON body with a top-level `results` array. Each item must include `severity` (ERROR, WARNING, or INFO — case-insensitive) and `message`. Items with any other severity are silently dropped. |
 | Non-2xx HTTP status from the endpoint | Endpoint returned 4xx/5xx. | The platform treats any non-200 response as a hard failure and surfaces the response body verbatim as the error. Always return `200 OK` with the JSON body, and signal incompatibility via `severity: ERROR` items rather than HTTP error codes. |
 | Endpoint receives a request it considers unauthenticated | Your handler rejects the call because it doesn't recognize the caller. | The Supervisor includes an `Authorization: Bearer <token>` header (a Supervisor ServiceAccount token) and `Content-Type: application/json`. If you authenticate callers, accept that token (for example via `TokenReview`) or otherwise trust requests originating from that ServiceAccount. |
