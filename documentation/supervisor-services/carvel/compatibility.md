@@ -188,13 +188,13 @@ HTTPS is strictly required (HTTP is not supported). You must ship a Kubernetes S
 
 ### Client authentication
 
-The Supervisor authenticates itself to your endpoint two ways, sent together on every call:
+The Supervisor authenticates itself to your endpoint in two ways:
 
 - **Bearer token** — an `Authorization: Bearer <token>` header carrying a Supervisor
-  ServiceAccount token.
-- **Client certificate (mTLS)** — the operator also presents a client certificate on
-  every call. Don't gate your handler on a release version; check the Supervisor
-  capability instead:
+  ServiceAccount token. This is sent on every call, regardless of capability state.
+- **Client certificate (mTLS)** — the operator presents a client certificate only if
+  the mTLS capability is enabled on the Supervisor. Don't gate your handler on a
+  release version; check the Supervisor capability instead:
 
   ```yaml
   capabilities:
@@ -204,15 +204,25 @@ The Supervisor authenticates itself to your endpoint two ways, sent together on 
 
   When this capability is enabled, the CA that issued the client certificate is
   published on the `SupervisorProperties` CR as `compatibilityCheckClientCA`
-  (base64-encoded PEM) and kept up to date if the certificate is ever rotated. The
-  Bearer token is still sent on every request regardless of capability state — mTLS is
-  additive, not a replacement, so an endpoint that doesn't validate client certificates
-  keeps working unchanged.
+  (base64-encoded PEM) and kept up to date if the certificate is ever rotated. mTLS
+  is additive: an endpoint that doesn't validate client certificates keeps working
+  unchanged, so only require a client certificate if this capability is present.
 
   To validate the operator's identity, declare `compatibilityCheckClientCA` in your
-  Package's `valuesSchema`, the same way you'd declare any other environment property;
-  the value is delivered through the standard env-props mechanism. Then configure your
-  server to require and validate a client certificate against that CA.
+  Package's `valuesSchema`, the same way you'd declare any other environment property —
+  see [Building Environment-Aware Supervisor Services](environment-aware.md) for how that
+  binding works. Then configure your server to require and validate a client certificate
+  against that CA.
+
+  If your service should only support Supervisors where mTLS is available, add a version
+  constraint to the Package instead of checking the capability at runtime:
+
+  ```yaml
+  metadata:
+    annotations:
+      # Requires Supervisor 9.1.1.0 or later, so mTLS is available for the compatibility check
+      appplatform.vmware.com/supervisor-version-constraints: ">=9.1.1.0"
+  ```
 
 ### Example
 

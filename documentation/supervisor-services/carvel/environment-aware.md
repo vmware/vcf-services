@@ -155,6 +155,7 @@ The following properties are currently exposed by the API. If your service requi
 |----------|------|-------------|
 | `apiServerDNSNames` | array of string | API server DNS names associated with the Supervisor. |
 | `capabilities` | array of object | Capabilities the Supervisor has (e.g. vCenter-supported features). Each item has `name` (string) and `value` (boolean). |
+| `compatibilityCheckClientCA` | string | Base64-encoded PEM CA certificate used to validate the mTLS client certificate on inbound compatibility check calls. Only published when the Supervisor's `supports_service_compat_check_mtls` capability is enabled; see [Client authentication](compatibility.md#client-authentication). |
 | `controlPlaneCount` | integer | Number of control planes enabled on the Supervisor. |
 | `controlPlaneResources` | object | Resource footprint of the control plane VM: `cpuCount` (integer), `memoryMiB` (integer). |
 | `cpVMSize` | string | *Deprecated.* Use `controlPlaneResources` instead. Control plane size: `TINY`, `SMALL`, `MEDIUM`, or `LARGE`. |
