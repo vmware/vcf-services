@@ -4,7 +4,7 @@ A `SupervisorService` installs and manages a [Carvel](https://carvel.dev/) packa
 
 ## When to Use
 
-- Deploy a Carvel-packaged application (e.g. Arcturus, TKG, Prometheus) to one or more Supervisor clusters.
+- Deploy a Carvel-packaged application (e.g. Arcturus, VKS, Prometheus) to one or more Supervisor clusters.
 - Automate multi-region Supervisor service deployment with consistent configuration.
 
 ## Spec Fields
