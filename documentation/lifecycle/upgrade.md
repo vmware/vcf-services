@@ -1,6 +1,6 @@
-# Upgrade, Rollback, and Deletion
+# Upgrade and Deletion
 
-This document covers the complete post-installation lifecycle of a VCF Service: how services progress through states, how upgrades work across all methods, how rollback is handled when an upgrade fails, and how deletion and force-deletion behave.
+This document covers the complete post-installation lifecycle of a VCF Service: how services progress through states, how upgrades work across all methods, and how deletion and force-deletion behave.
 
 ## Service Lifecycle States
 
@@ -225,7 +225,7 @@ While the current version is in maintenance mode:
 - Controllers skip all reconciliation for its resources.
 - No changes are applied to target systems.
 - The service reports `status: Maintenance`, `phase: Upgrading`.
-- Maintenance mode ends when the current version is cleaned up after a successful upgrade, or when rollback is initiated after a failure.
+- Maintenance mode ends when the current version is cleaned up after a successful upgrade.
 
 ### Upgrade Methods
 
@@ -236,7 +236,6 @@ While the current version is in maintenance mode:
 3. UI loads current configuration and renders it against the new version's schema.
 4. Operator reviews and adjusts parameters.
 5. Operator confirms; upgrade proceeds with a progress indicator.
-6. Rollback option is available if the upgrade fails.
 
 #### Upgrade via API
 
@@ -273,62 +272,6 @@ while true; do
   sleep 30
 done
 ```
-
----
-
-## Rollback
-
-If a new version fails to install, the previous version can be restored.
-
-### Rollback Flow
-
-```text
-1. Upgrade fails
-   └─► New version: Status Unhealthy
-
-2. Rollback initiated
-   └─► POST /v2/vcf-services/{id}/rollback  { "targetVersion": "9.1.0.0" }
-   └─► OR automatic rollback (if configured)
-
-3. New (failed) version → Maintenance Mode
-   └─► Resources frozen
-
-4. Previous version resumed
-   └─► Resources re-enter reconciliation loop
-   └─► Downgrade performed where possible
-
-5. Resource handling
-   ├─► New version resources   → Removed
-   ├─► Transferred resources   → Ownership reverted to previous version
-   └─► Original resources      → Restored
-
-6. Failed version cleanup
-   └─► Resources and version entity removed
-
-7. Rollback complete
-   └─► Previous version active and Healthy
-```
-
-### Rollback via API
-
-```http request
-POST /v2/vcf-services/{id}/rollback
-Content-Type: application/json
-
-{ "targetVersion": "9.1.0.0" }
-```
-
-### SupervisorService Downgrade Limitation
-
-> **Important:** Once a `SupervisorService` has been successfully installed on a Supervisor cluster it **cannot be downgraded** to a previous version. Carvel kapp-controller does not support package downgrades, and data migrations may be irreversible.
-
-If a rollback is required for a service that includes a `SupervisorService`, the workaround is:
-
-1. Delete the service completely.
-2. Reinstall the previous version from scratch.
-3. Restore data from a backup taken before the upgrade.
-
-This is why testing upgrades in a development environment and taking backups before upgrading production services is essential.
 
 ---
 
@@ -378,7 +321,6 @@ After a force delete, audit external systems (vCenter, Supervisor, VCF Automatio
 | Option | When to use |
 | :---- | :---- |
 | **Manual fix** | Root cause is known; fix configuration or resource issue, then retry the upgrade |
-| **Rollback** | Revert to the previous working version; investigate offline and retry later |
 | **Disable auto-upgrade** | Prevent repeated failed attempts while a fix is prepared |
 
 To disable automatic upgrade after a failure:
@@ -395,8 +337,8 @@ Content-Type: application/json
 | Failure point | Impact | Recovery |
 | :---- | :---- | :---- |
 | Pre-check failure | Upgrade not started | Fix the reported issue and retry |
-| Resource creation failure | Partial upgrade | Rollback or fix and retry |
-| Timeout | Upgrade stuck | Rollback or force-delete and reinstall |
+| Resource creation failure | Partial upgrade | Fix and retry |
+| Timeout | Upgrade stuck | Force-delete and reinstall |
 
 ---
 
@@ -414,7 +356,6 @@ Content-Type: application/json
 - Test the upgrade in a development environment first.
 - Back up any data managed by the service (especially for `SupervisorService` workloads).
 - Read the release notes for the new version; note any schema changes to `userOverwrite` values.
-- Plan a rollback procedure, including the Supervisor Service reinstallation path.
 - Schedule a maintenance window for production upgrades.
 
 ### During upgrade
