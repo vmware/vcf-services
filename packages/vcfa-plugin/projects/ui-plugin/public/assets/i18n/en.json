@@ -1,0 +1,5 @@
+{
+    "subnav.menu.home": "Home",
+    "home.title": "Welcome to your VCFA Plugin",
+    "home.description": "The Quick Start Plugin showcases all available extension points in VCFA where you can start building your own plugin."
+}

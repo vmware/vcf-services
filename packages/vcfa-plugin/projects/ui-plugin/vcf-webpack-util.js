@@ -21,9 +21,8 @@ function prepare() {
   const coreLibs = [
     "@angular",
     "@clr",
-    "@cds",
     "rxjs",
-    "@vcfa"
+    "@vcfa/container-hooks"
   ];
 
   const libsToShare = Object.keys(allRecords).map((npmPackageName) => {
