@@ -4,8 +4,7 @@ import { ClarityModule } from "@clr/angular";
 import { StandaloneHelperModule } from "./standalone/standalone.helper.module";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 
-import "@cds/core/icon/register";
-import { ClarityIcons, homeIcon } from "@cds/core/icon";
+import { ClarityIcons, homeIcon } from "@clr/angular";
 ClarityIcons.addIcons(homeIcon);
 
 @Component({

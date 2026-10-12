@@ -21,7 +21,6 @@ function prepare() {
   const coreLibs = [
     "@angular",
     "@clr",
-    "@cds",
     "rxjs",
     "@vcfa"
   ];
